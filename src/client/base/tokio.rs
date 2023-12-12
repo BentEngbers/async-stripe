@@ -133,14 +133,15 @@ async fn send_inner(
                 let mut request = request.clone();
                 request.set_body(body.clone());
 
-                let response = match client.request(convert_request(request).await).await {
-                    Ok(response) => response,
-                    Err(err) => {
-                        last_error = StripeError::from(err);
-                        tries += 1;
-                        continue;
-                    }
-                };
+                let response =
+                    match client.request(convert_request(request).await).await {
+                        Ok(response) => response,
+                        Err(err) => {
+                            last_error = StripeError::from(err);
+                            tries += 1;
+                            continue;
+                        }
+                    };
 
                 let status = response.status();
                 let retry = response
@@ -256,10 +257,11 @@ mod tests {
         let server = MockServer::start_async().await;
 
         // Create a mock on the server.
-        let hello_mock = server.mock(|when, then| {
-            when.method(GET).path("/server-errors");
-            then.status(500);
-        });
+        let hello_mock =
+            server.mock(|when, then| {
+                when.method(GET).path("/server-errors");
+                then.status(500);
+            });
 
         let req = Request::get(Url::parse(&server.url("/server-errors")).unwrap());
         let res = client.execute::<()>(req, &RequestStrategy::Retry(5)).await;
@@ -315,16 +317,17 @@ mod tests {
         // Start a lightweight mock server.
         let server = MockServer::start_async().await;
 
-        let mock = server.mock(|when, then| {
-            when.method(GET).path("/v1/odd_data");
-            then.status(200).body(
-                "{
+        let mock =
+            server.mock(|when, then| {
+                when.method(GET).path("/v1/odd_data");
+                then.status(200).body(
+                    "{
                 \"id\": \"test\",
                 \"name\": 10
               }
               ",
-            );
-        });
+                );
+            });
 
         let req = Request::get(Url::parse(&server.url("/v1/odd_data")).unwrap());
         let res = client.execute::<DataType>(req, &RequestStrategy::Retry(3)).await;

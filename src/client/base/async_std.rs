@@ -136,10 +136,11 @@ mod tests {
         let server = MockServer::start_async().await;
 
         // Create a mock on the server.
-        let hello_mock = server.mock(|when, then| {
-            when.method(GET).path("/server-errors");
-            then.status(500);
-        });
+        let hello_mock =
+            server.mock(|when, then| {
+                when.method(GET).path("/server-errors");
+                then.status(500);
+            });
 
         let req = Request::get(Url::parse(&server.url("/server-errors")).unwrap());
         let res = client.execute::<()>(req, &RequestStrategy::Retry(5)).await;

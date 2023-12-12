@@ -22,36 +22,38 @@ async fn main() {
     let secret_key = std::env::var("STRIPE_SECRET_KEY").expect("Missing STRIPE_SECRET_KEY in env");
     let client = Client::new(secret_key);
 
-    let account = Account::create(
-        &client,
-        CreateAccount {
-            type_: Some(AccountType::Express),
-            capabilities: Some(CreateAccountCapabilities {
-                card_payments: Some(CreateAccountCapabilitiesCardPayments {
-                    requested: Some(true),
+    let account =
+        Account::create(
+            &client,
+            CreateAccount {
+                type_: Some(AccountType::Express),
+                capabilities: Some(CreateAccountCapabilities {
+                    card_payments: Some(
+                        CreateAccountCapabilitiesCardPayments { requested: Some(true) }
+                    ),
+                    transfers: Some(CreateAccountCapabilitiesTransfers { requested: Some(true) }),
+                    ..Default::default()
                 }),
-                transfers: Some(CreateAccountCapabilitiesTransfers { requested: Some(true) }),
                 ..Default::default()
-            }),
-            ..Default::default()
-        },
-    )
-    .await
-    .unwrap();
+            },
+        )
+        .await
+        .unwrap();
 
-    let link = AccountLink::create(
-        &client,
-        CreateAccountLink {
-            account: account.id.clone(),
-            type_: AccountLinkType::AccountOnboarding,
-            collect: None,
-            expand: &[],
-            refresh_url: Some("https://test.com/refresh"),
-            return_url: Some("https://test.com/return"),
-        },
-    )
-    .await
-    .unwrap();
+    let link =
+        AccountLink::create(
+            &client,
+            CreateAccountLink {
+                account: account.id.clone(),
+                type_: AccountLinkType::AccountOnboarding,
+                collect: None,
+                expand: &[],
+                refresh_url: Some("https://test.com/refresh"),
+                return_url: Some("https://test.com/return"),
+            },
+        )
+        .await
+        .unwrap();
 
     println!("created a stripe connect link at {}", link.url);
 }

@@ -204,16 +204,9 @@ pub fn gen_generated_schemas(
         for (key, field) in &obj_type.properties {
             let required = obj_type.required.contains(key);
             out.push('\n');
-            out.push_str(&gen_field(
-                state,
-                meta,
-                &schema_name,
-                key,
-                field,
-                required,
-                false,
-                shared_objects,
-            ));
+            out.push_str(
+                &gen_field(state, meta, &schema_name, key, field, required, false, shared_objects)
+            );
         }
         out.push_str("}\n");
 
@@ -262,9 +255,13 @@ pub fn gen_multitype_params(
             }
         }
         Err(TypeError::IsObject) => {
-            let new_type_name =
-                member_schema.schema_data.title.as_ref().map(|s| s.to_camel_case()).unwrap_or_else(
-                    || format!("{}{}Info", parent_struct_rust_type, param_name.to_camel_case()),
+            let new_type_name = member_schema
+                .schema_data
+                .title
+                .as_ref()
+                .map(|s| s.to_camel_case())
+                .unwrap_or_else(
+                    || format!("{}{}Info", parent_struct_rust_type, param_name.to_camel_case())
                 );
 
             let inferred_object =
@@ -346,11 +343,9 @@ pub fn gen_inferred_params(
                 }
                 "product" => {
                     print_doc(out);
-                    initializers.push((
-                        "product".into(),
-                        "IdOrCreate<'a, CreateProduct<'a>>".into(),
-                        required,
-                    ));
+                    initializers.push(
+                        ("product".into(), "IdOrCreate<'a, CreateProduct<'a>>".into(), required)
+                    );
                     state.use_params.insert("IdOrCreate");
                     state.use_resources.insert("CreateProduct".to_owned());
                     write_out_field(out, "product", "IdOrCreate<'a, CreateProduct<'a>>", required);
@@ -444,11 +439,8 @@ pub fn gen_inferred_params(
                         == Some("range_query_specs")
                     {
                         print_doc(out);
-                        initializers.push((
-                            param_rename.into(),
-                            "RangeQuery<Timestamp>".into(),
-                            required,
-                        ));
+                        initializers
+                            .push((param_rename.into(), "RangeQuery<Timestamp>".into(), required));
                         state.use_params.insert("RangeQuery");
                         state.use_params.insert("Timestamp");
                         write_out_field(out, param_rename, "RangeQuery<Timestamp>", required);
@@ -947,16 +939,17 @@ pub fn gen_field<T: Borrow<Schema>>(
     if field_rename != field_name {
         write_serde_rename(&mut out, field_name);
     }
-    let rust_type = gen_field_rust_type(
-        state,
-        meta,
-        object,
-        field_name,
-        field,
-        required,
-        default,
-        shared_objects,
-    );
+    let rust_type =
+        gen_field_rust_type(
+            state,
+            meta,
+            object,
+            field_name,
+            field,
+            required,
+            default,
+            shared_objects,
+        );
     if !required {
         if rust_type == "bool" || rust_type == "Metadata" || rust_type.starts_with("List<") {
             out.push_str("    #[serde(default)]\n");
@@ -1078,9 +1071,9 @@ fn gen_field_type(
         SchemaKind::Type(Type::Object(typ)) => {
             if as_object_enum_name(field).as_deref() == Some("list") {
                 state.use_params.insert("List");
-                let element = as_data_array_item(typ).unwrap_or_else(|| {
-                    panic!("Expected to find array item but found {:?}", field.schema_kind)
-                });
+                let element = as_data_array_item(typ).unwrap_or_else(
+                    || panic!("Expected to find array item but found {:?}", field.schema_kind)
+                );
                 let element_field_name = if field_name.ends_with('s') {
                     field_name[0..field_name.len() - 1].into()
                 } else if field_name.ends_with("ies") {
@@ -1123,11 +1116,12 @@ fn gen_field_type(
             struct_name
         }
         SchemaKind::AnyOf { .. } | SchemaKind::OneOf { .. } => {
-            let any_of = match &field.schema_kind {
-                SchemaKind::AnyOf { any_of } => any_of,
-                SchemaKind::OneOf { one_of } => one_of,
-                _ => unreachable!(),
-            };
+            let any_of =
+                match &field.schema_kind {
+                    SchemaKind::AnyOf { any_of } => any_of,
+                    SchemaKind::OneOf { one_of } => one_of,
+                    _ => unreachable!(),
+                };
             if any_of.len() == 1
                 || (any_of.len() == 2
                     && any_of[1]
@@ -1412,13 +1406,14 @@ pub fn gen_impl_requests(
         }
 
         if let Some(post_request) = &request.post {
-            let return_type = match get_ok_response_schema(post_request) {
-                Some(ReferenceOr::Reference { reference }) => {
-                    let schema = reference.trim_start_matches("#/components/schemas/");
-                    meta.schema_to_rust_type(schema)
-                }
-                _ => continue,
-            };
+            let return_type =
+                match get_ok_response_schema(post_request) {
+                    Some(ReferenceOr::Reference { reference }) => {
+                        let schema = reference.trim_start_matches("#/components/schemas/");
+                        meta.schema_to_rust_type(schema)
+                    }
+                    _ => continue,
+                };
             if !err_schema_expected(post_request) {
                 continue; // skip generating this unusual request (for now...)
             }
@@ -1435,10 +1430,9 @@ pub fn gen_impl_requests(
 
             if !methods.contains_key(&MethodTypes::Create) && parameter_count == 0 && create {
                 // Construct `parameters` from the request body schema
-                let create_parameters =
-                    get_request_form_parameters(post_request).unwrap_or_else(|err| {
-                        panic!("Could not extract create parameters due to error {}", err)
-                    });
+                let create_parameters = get_request_form_parameters(post_request).unwrap_or_else(
+                    |err| panic!("Could not extract create parameters due to error {}", err),
+                );
                 let params_name = format!("Create{}", rust_struct);
                 let params = InferredParams {
                     method: "create".into(),
@@ -1469,10 +1463,9 @@ pub fn gen_impl_requests(
                 };
 
                 // Construct `parameters` from the request body schema
-                let update_parameters =
-                    get_request_form_parameters(post_request).unwrap_or_else(|err| {
-                        panic!("Could not extract update parameters due to error {}", err)
-                    });
+                let update_parameters = get_request_form_parameters(post_request).unwrap_or_else(
+                    |err| panic!("Could not extract update parameters due to error {}", err),
+                );
                 let params_name = format!("Update{}", rust_struct);
                 let params = InferredParams {
                     method: "update".into(),

@@ -61,11 +61,12 @@ fn get_current_openapi_tag() -> anyhow::Result<String> {
 pub fn fetch_spec(version: SpecVersion, in_path: &str) -> anyhow::Result<Value> {
     let client = Client::new();
 
-    let desired_version = match version {
-        SpecVersion::Latest => get_latest_openapi_tag(&client)?,
-        SpecVersion::Current => get_current_openapi_tag()?,
-        SpecVersion::Version(v) => v,
-    };
+    let desired_version =
+        match version {
+            SpecVersion::Latest => get_latest_openapi_tag(&client)?,
+            SpecVersion::Current => get_current_openapi_tag()?,
+            SpecVersion::Version(v) => v,
+        };
 
     tracing::info!("fetching OpenAPI spec version {}", desired_version);
 
@@ -86,10 +87,11 @@ pub fn fetch_spec(version: SpecVersion, in_path: &str) -> anyhow::Result<Value> 
         }
     }
 
-    let url = format!(
-        "https://raw.githubusercontent.com/stripe/openapi/{}/openapi/spec3.sdk.json",
-        &desired_version
-    );
+    let url =
+        format!(
+            "https://raw.githubusercontent.com/stripe/openapi/{}/openapi/spec3.sdk.json",
+            &desired_version
+        );
 
     let mut spec: Value = client.get(url).send()?.error_for_status()?.json()?;
     write_x_stripe_tag(&mut spec, &desired_version)?;

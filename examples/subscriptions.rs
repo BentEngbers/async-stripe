@@ -26,10 +26,9 @@ async fn main() {
             description: Some(
                 "A fake customer that is used to illustrate the examples in async-stripe.",
             ),
-            metadata: Some(std::collections::HashMap::from([(
-                String::from("async-stripe"),
-                String::from("true"),
-            )])),
+            metadata: Some(std::collections::HashMap::from(
+                [(String::from("async-stripe"), String::from("true"))]
+            )),
 
             ..Default::default()
         },
@@ -39,34 +38,37 @@ async fn main() {
 
     println!("created a customer at https://dashboard.stripe.com/test/customers/{}", customer.id);
 
-    let payment_method = {
-        let pm = PaymentMethod::create(
-            &client,
-            CreatePaymentMethod {
-                type_: Some(PaymentMethodTypeFilter::Card),
-                card: Some(CreatePaymentMethodCardUnion::CardDetailsParams(CardDetailsParams {
-                    number: "4000008260000000".to_string(), // UK visa
-                    exp_year: 2025,
-                    exp_month: 1,
-                    cvc: Some("123".to_string()),
+    let payment_method =
+        {
+            let pm = PaymentMethod::create(
+                &client,
+                CreatePaymentMethod {
+                    type_: Some(PaymentMethodTypeFilter::Card),
+                    card: Some(CreatePaymentMethodCardUnion::CardDetailsParams(
+                        CardDetailsParams {
+                            number: "4000008260000000".to_string(), // UK visa
+                            exp_year: 2025,
+                            exp_month: 1,
+                            cvc: Some("123".to_string()),
+                            ..Default::default()
+                        },
+                    )),
                     ..Default::default()
-                })),
-                ..Default::default()
-            },
-        )
-        .await
-        .unwrap();
+                },
+            )
+            .await
+            .unwrap();
 
-        PaymentMethod::attach(
-            &client,
-            &pm.id,
-            AttachPaymentMethod { customer: customer.id.clone() },
-        )
-        .await
-        .unwrap();
+            PaymentMethod::attach(
+                &client,
+                &pm.id,
+                AttachPaymentMethod { customer: customer.id.clone() },
+            )
+            .await
+            .unwrap();
 
-        pm
-    };
+            pm
+        };
 
     println!(
         "created a payment method with id {} and attached it to {}",
@@ -77,10 +79,9 @@ async fn main() {
     // create a new exmaple project
     let product = {
         let mut create_product = CreateProduct::new("Monthly T-Shirt Subscription");
-        create_product.metadata = Some(std::collections::HashMap::from([(
-            String::from("async-stripe"),
-            String::from("true"),
-        )]));
+        create_product.metadata = Some(
+            std::collections::HashMap::from([(String::from("async-stripe"), String::from("true"))])
+        );
         Product::create(&client, create_product).await.unwrap()
     };
 
@@ -88,10 +89,9 @@ async fn main() {
     let price = {
         let mut create_price = CreatePrice::new(Currency::USD);
         create_price.product = Some(IdOrCreate::Id(&product.id));
-        create_price.metadata = Some(std::collections::HashMap::from([(
-            String::from("async-stripe"),
-            String::from("true"),
-        )]));
+        create_price.metadata = Some(
+            std::collections::HashMap::from([(String::from("async-stripe"), String::from("true"))])
+        );
         create_price.unit_amount = Some(1000);
         create_price.recurring = Some(CreatePriceRecurring {
             interval: CreatePriceRecurringInterval::Month,
@@ -110,10 +110,11 @@ async fn main() {
 
     let subscription = {
         let mut params = CreateSubscription::new(customer.id);
-        params.items = Some(vec![CreateSubscriptionItems {
-            price: Some(price.id.to_string()),
-            ..Default::default()
-        }]);
+        params.items =
+            Some(vec![CreateSubscriptionItems {
+                price: Some(price.id.to_string()),
+                ..Default::default()
+            }]);
         params.default_payment_method = Some(&payment_method.id);
         params.expand = &["items", "items.data.price.product", "schedule"];
 

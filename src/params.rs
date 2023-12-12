@@ -570,10 +570,11 @@ mod tests {
 
         let client = Client::from_url(&*server.url("/"), "fake_key");
 
-        let next_item = server.mock(|when, then| {
-            when.method(GET).path("/v1/customers").query_param("starting_after", "cus_1");
-            then.status(200).body(
-                r#"{"object": "list", "data": [{
+        let next_item =
+            server.mock(|when, then| {
+                when.method(GET).path("/v1/customers").query_param("starting_after", "cus_1");
+                then.status(200).body(
+                    r#"{"object": "list", "data": [{
                 "id": "cus_2",
                 "object": "customer",
                 "balance": 0,
@@ -588,13 +589,14 @@ mod tests {
                 "preferred_locales": [],
                 "tax_exempt": "none"
               }], "has_more": false, "url": "/v1/customers"}"#,
-            );
-        });
+                );
+            });
 
-        let first_item = server.mock(|when, then| {
-            when.method(GET).path("/v1/customers");
-            then.status(200).body(
-                r#"{"object": "list", "data": [{
+        let first_item =
+            server.mock(|when, then| {
+                when.method(GET).path("/v1/customers");
+                then.status(200).body(
+                    r#"{"object": "list", "data": [{
                 "id": "cus_1",
                 "object": "customer",
                 "balance": 0,
@@ -608,8 +610,8 @@ mod tests {
                 "preferred_locales": [],
                 "tax_exempt": "none"
               }], "has_more": true, "url": "/v1/customers"}"#,
-            );
-        });
+                );
+            });
 
         let params = ListCustomers::new();
         let res = Customer::list(&client, &params).await.unwrap().paginate(params);
@@ -639,10 +641,11 @@ mod tests {
 
         let client = Client::from_url(&*server.url("/"), "fake_key");
 
-        let next_item = server.mock(|when, then| {
-            when.method(GET).path("/v1/customers").query_param("starting_after", "cus_1");
-            then.status(200).body(
-                r#"{"object": "list", "data": [{
+        let next_item =
+            server.mock(|when, then| {
+                when.method(GET).path("/v1/customers").query_param("starting_after", "cus_1");
+                then.status(200).body(
+                    r#"{"object": "list", "data": [{
                 "id": "cus_2",
                 "object": "customer",
                 "balance": 0,
@@ -657,13 +660,14 @@ mod tests {
                 "preferred_locales": [],
                 "tax_exempt": "none"
               }], "has_more": false, "url": "/v1/customers"}"#,
-            );
-        });
+                );
+            });
 
-        let first_item = server.mock(|when, then| {
-            when.method(GET).path("/v1/customers");
-            then.status(200).body(
-                r#"{"object": "list", "data": [{
+        let first_item =
+            server.mock(|when, then| {
+                when.method(GET).path("/v1/customers");
+                then.status(200).body(
+                    r#"{"object": "list", "data": [{
                 "id": "cus_1",
                 "object": "customer",
                 "balance": 0,
@@ -677,8 +681,8 @@ mod tests {
                 "preferred_locales": [],
                 "tax_exempt": "none"
               }], "has_more": true, "url": "/v1/customers"}"#,
-            );
-        });
+                );
+            });
 
         let params = ListCustomers::new();
         let res = Customer::list(&client, &params).await.unwrap().paginate(params);
